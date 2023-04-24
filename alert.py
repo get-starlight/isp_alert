@@ -23,6 +23,9 @@ isp_identifier = {
     "xFinity": ["div", "xds-gbb-cards__main-wrapper"]
 }
 
+def saveContent(isp,content):
+    with open(f"{isp}.txt", 'w', encoding='utf-8') as f:
+        f.write(content)
 
 def siteChanged(isp):
     url = isp_url[isp]
@@ -49,25 +52,25 @@ def siteChanged(isp):
         
         
         # Check if the content has changed
-    previous_content = ''
-
-    try:
-        with open(f"{isp}.txt", 'r', encoding='utf-8') as f:
-            previous_content = f.read()
-        
-    except FileNotFoundError:
-        pass
-
+    
     # using hash function to check if html has changed, instead of dealing with whitespace discrepancies in strings
     # https://stackoverflow.com/questions/65693836/how-to-detect-changes-on-website-python-web-scraping
     # content might be None if class name has been changed
     new_content=hashlib.sha256(content.encode('utf-8')).hexdigest() if content else hashlib.sha256(soup.encode('utf-8')).hexdigest()
     
+    previous_content = ''
+    
+    try:
+        with open(f"{isp}.txt", 'r', encoding='utf-8') as f:
+            previous_content = f.read()
+        
+    except FileNotFoundError: # isp added for first time
+        saveContent(isp,new_content)
+        return False
 
     if new_content != previous_content:
             # Save the new content
-        with open(f"{isp}.txt", 'w', encoding='utf-8') as f:
-            f.write(new_content)
+        saveContent(isp,new_content)
         print(f"{isp} changed")
         
     else:
